@@ -1,0 +1,394 @@
+<style>
+  /* ==============================================================================
+     1. CẤU HÌNH GIAO DIỆN CHUNG (GENERAL UI)
+     ============================================================================== */
+  body { 
+    background-color: #f0f2f5; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    color: #1a202c;
+  }
+
+  .list-group-item { 
+    border: none; 
+    transition: all 0.25s ease; 
+    cursor: pointer; 
+    font-weight: 500; 
+    border-radius: 12px !important;
+    padding: 12px 20px;
+    margin-bottom: 4px;
+  }
+
+  .list-group-item.active { 
+    background-color: #ebf8ff !important; 
+    color: #2b6cb0 !important; 
+    font-weight: 700; 
+    border-left: 5px solid #3182ce;
+  }
+
+  /* ==============================================================================
+     2. ĐỊNH DẠNG MA TRẬN VI PHẠM (SỬA LỖI TRƯỢT NGANG)
+     ============================================================================== */
+  
+  /* KHU VỰC CUỘN: BẮT BUỘC PHẢI LÀ KHỐI (BLOCK) VÀ CÓ OVERFLOW-X */
+  .grid-table-scroll {
+    max-height: 75vh;
+    overflow-y: auto; 
+    overflow-x: auto !important; /* Mở vùng cuộn ngang cưỡng bức */
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    scroll-behavior: smooth;
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  /* ÉP ĐỘ RỘNG BẢNG: Để nút trượt có tác dụng, bảng phải rộng hơn khung hình */
+  #violation-grid-table {
+    border-collapse: separate !important; 
+    border-spacing: 0;
+    width: 100% !important;      /* Ép bảng vừa khít màn hình */
+    min-width: 100% !important;
+    table-layout: auto !important; /* Để các cột tự thu nhỏ lại */
+  }
+
+  /* ĐỊNH DẠNG Ô TIÊU ĐỀ (HEADER) */
+  #violation-grid-table thead th { 
+    position: sticky; 
+    top: 0; 
+    z-index: 20; 
+    background-color: #f8fafc !important; 
+    font-size: 0.75rem; 
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 15px 5px;
+    border-bottom: 2px solid #cbd5e0;
+    border-right: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+
+  /* ĐỊNH DẠNG Ô DỮ LIỆU (BODY) */
+  #violation-grid-table td {
+    padding: 4px 2px !important; /* Nén lề trên dưới, trái phải */
+    width: 25px !important;      /* Ép độ rộng cực nhỏ */ 
+    min-width: 25px !important;  /* Nén tối đa để vừa màn hình */
+    text-align: center;
+    border-bottom: 1px solid #edf2f7;
+    border-right: 1px solid #edf2f7;
+    white-space: nowrap;
+  }
+
+  /* CỐ ĐỊNH CỘT ĐẦU TIÊN (TÊN LỚP) - PHẢI NỔI CAO NHẤT */
+  #violation-grid-table td:first-child, 
+  #violation-grid-table th:first-child { 
+    position: sticky !important; 
+    left: 0 !important; 
+    z-index: 100 !important;    /* Tăng vọt Z-index để không bị đè nhòe chữ */
+    background-color: #ffffff !important; 
+    width: 140px !important; 
+    min-width: 140px !important;  
+    border-right: 4px solid #0d6efd !important; /* Vách ngăn xanh đậm rõ rệt */
+    text-align: left;
+    padding-left: 20px;
+    box-shadow: 5px 0 10px rgba(0,0,0,0.1); 
+  }
+
+  /* Ô GIAO NHAU GÓC TRÊN CÙNG BÊN TRÁI */
+  #violation-grid-table thead th:first-child {
+    z-index: 110 !important; 
+    background-color: #f1f5f9 !important;
+  }
+
+  /* ==============================================================================
+     3. TÙY CHỈNH NÚT ĐIỀU HƯỚNG & THANH CUỘN
+     ============================================================================== */
+  .btn-nav-grid {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background-color: #0d6efd;
+    color: white !important;
+    border: none;
+    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-nav-grid:hover { background-color: #0b5ed7; transform: translateY(-2px); }
+  .btn-nav-grid:active { transform: scale(0.9); }
+
+  /* Thanh cuộn ngang to rõ, dễ kéo bằng chuột */
+  .grid-table-scroll::-webkit-scrollbar { height: 16px; width: 10px; }
+  .grid-table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+  .grid-table-scroll::-webkit-scrollbar-thumb { background: #0d6efd; border-radius: 10px; border: 3px solid #f1f5f9; }
+
+  .gvcn-badge-header {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+  }
+ /* XOAY DỌC TIÊU ĐỀ, CHỮ XANH DƯƠNG VÀ NÉN ĐỀU L01-L47 */
+#violation-grid-table thead tr:last-child th {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  padding: 8px 2px !important;
+  max-width: 25px !important;
+  min-width: 25px !important;
+  height: 90px !important;
+  vertical-align: middle;
+  text-align: center;
+  color: blue !important; /* Đã chuyển sang màu xanh dương */
+}
+#violation-grid-table thead th {
+  color: blue !important;
+  vertical-align: middle;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    position: fixed !important;
+    left: -280px; /* Ẩn menu sang trái */
+    top: 0; bottom: 0;
+    z-index: 9999;
+    transition: 0.3s all ease;
+  }
+  #sidebar-wrapper.active {
+    left: 0 !important; /* Trượt menu ra khi nhấn nút */
+  }
+}
+/* ĐOẠN NÀY GIÚP MENU TỰ ĐẨY SANG TRÁI ĐỂ ẨN ĐI TRÊN MOBILE */
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    position: fixed !important;
+    left: -280px; /* Ẩn menu ra ngoài màn hình */
+    top: 0; bottom: 0;
+    z-index: 9999;
+    transition: 0.3s all ease;
+  }
+  
+  /* Khi nhấn nút thì trượt Menu vào (nhờ ID sidebar-wrapper) */
+  #sidebar-wrapper.active {
+    left: 0 !important;
+  }
+}
+/* Màu đỏ cho tiêu đề bảng chi tiết lớp */
+#cvm-header th {
+  color: #dc3545 !important; /* Màu đỏ của Bootstrap */
+  font-weight: 800;
+  text-transform: uppercase;
+}
+/*ko xoa*/
+/* ĐỊNH DẠNG KHUNG LƯỚI 6 CỘT CỐ ĐỊNH */
+#V_SM_grid_container {
+  display: grid !important;
+  /* Ép đúng 6 cột, mỗi cột 145px */
+  grid-template-columns: repeat(6, 145px) !important; 
+  gap: 20px 15px;
+  justify-content: center;
+  padding: 30px;
+  background: #ffffff;
+}
+
+/* GIỮ NGUYÊN STYLE CARD THẦY KHEN NGON */
+.v-sm-card {
+  width: 145px; background: white; border-radius: 15px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; 
+  transition: 0.3s ease; border: 2px solid #eee;
+}
+.v-sm-card:hover { border-color: #0d6efd; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+.v-sm-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 5px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.v-sm-name { font-size: 11px; font-weight: 700; text-align: center; height: 32px; overflow: hidden; line-height: 1.2; color: #333; }
+.v-sm-input { width: 35px; height: 24px; font-size: 11px; padding: 0; text-align: center; border-radius: 4px; border: 1px solid #ddd; }
+/*bổ trợ */
+
+/* ==============================================================================
+   SIÊU BỔ TRỢ: TỰ ĐỘNG CÂN CHỈNH GIAO DIỆN ĐIỆN THOẠI
+   ============================================================================== */
+
+@media (max-width: 768px) {
+  /* 1. ÉP TIÊU ĐỀ VÀ NÚT CHỌN LỚP XẾP CHỒNG NHAU ĐỂ HIỆN RA */
+  #tab-vsmap_feature .card-header {
+    display: flex !important;
+    flex-direction: column !important; /* Đẩy nút chọn lớp xuống dưới tiêu đề */
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 15px !important;
+  }
+
+  #V_SM_select_lop {
+    width: 100% !important; /* Ô chọn lớp rộng hết màn hình để dễ bấm */
+    max-width: none !important;
+  }
+
+  /* 2. CHỐNG HIỆN THỊ KIỂU PC (ÉP TRANG VỪA KHÍT ĐIỆN THOẠI) */
+  #page-content-wrapper {
+    width: 100vw !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    overflow-x: hidden !important; /* Chống tràn toàn trang */
+  }
+
+  /* 3. KHÓA BỤC GIẢNG & SƠ ĐỒ VÀO MỘT VÙNG CUỘN RIÊNG */
+  #tab-vsmap_feature .card-body {
+    overflow-x: auto !important; /* Chỉ cuộn ngang trong vùng này */
+    padding: 0 !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 4. GIỮ NGUYÊN BỤC GIẢNG NẰM GIỮA SƠ ĐỒ */
+  #tab-vsmap_feature .card-body > div {
+    min-width: 960px !important; /* Ép nội dung rộng đúng bằng 6 dãy bàn */
+    padding: 20px 0;
+  }
+}
+
+/* TẠO THANH CUỘN TO RÕ ĐỂ THẦY DỄ KÉO */
+::-webkit-scrollbar {
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #0d6efd;
+  border-radius: 10px;
+}
+/* ==============================================================================
+   KHỐI CHỐT HẠ: GIỮ ĐÚNG 6 CỘT & THU NHỎ TOÀN CẢNH
+   ============================================================================== */
+
+@media (max-width: 768px) {
+  /* 1. ÉP BUỘC KHUNG CHỨA PHẢI CÓ CHIỀU RỘNG CỐ ĐỊNH (KHÔNG CHO NHẢY HÀNG) */
+  #V_SM_grid_container {
+    display: grid !important;
+    /* Khóa chặt 6 cột, mỗi cột 145px */
+    grid-template-columns: repeat(6, 145px) !important; 
+    gap: 15px 10px !important;
+    width: 950px !important; /* Chiều rộng thực tế của cả lớp */
+    
+    /* LỆNH THEN CHỐT: Thu nhỏ 950px lại còn khoảng 40% để vừa khít điện thoại */
+    transform: scale(0.4) !important; 
+    transform-origin: top left !important; /* Thu nhỏ từ góc trái trên cùng */
+    
+    margin-bottom: -500px !important; /* Bù lại khoảng trống dư thừa do lệnh scale tạo ra */
+  }
+
+  /* 2. ĐẢM BẢO BỤC GIẢNG CŨNG CHẠY THEO TỶ LỆ THU NHỎ */
+  #tab-vsmap_feature .text-center.mb-5 {
+    width: 950px !important;
+    transform: scale(0.4) !important;
+    transform-origin: top left !important;
+    margin-bottom: -20px !important;
+  }
+
+  /* 3. MỞ RỘNG KHUNG CHỨA ĐỂ KHÔNG BỊ CẮT MẤT HÌNH */
+  #tab-vsmap_feature .card-body {
+    overflow-x: hidden !important; /* Tắt cuộn ngang vì đã thu nhỏ vừa vặn */
+    padding: 10px !important;
+    min-height: 800px !important; /* Đảm bảo hiện đủ các hàng ghế phía sau */
+  }
+}
+/*KOXOA*/
+/* --- HỆ THỐNG NÉN BẢNG CHỐNG TRÀN VÀ FIX RỘNG CỘT L01 --- */
+
+/* Nhốt bảng vào khung, cho phép cuộn nội bộ khi Zoom to */
+#tab-weekly_emulation .grid-table-scroll {
+  width: 100% !important;
+  overflow: auto !important;
+  display: block !important;
+  max-height: 75vh;
+}
+
+/* Ép bảng dùng kích thước thực tế, không được tự giãn */
+#weekly-emulation-table {
+  table-layout: auto !important;
+  width: max-content !important; /* Quan trọng: Giúp cột không bị giãn rộng */
+  border-collapse: separate !important;
+}
+
+/* Cố định cột Lớp bên trái */
+#weekly-emulation-table .sticky-col-fixed,
+#weekly-emulation-table td:first-child, 
+#weekly-emulation-table th:first-child {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 100 !important;
+  background-color: #ffffff !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
+  border-right: 3px solid #0d6efd !important;
+  box-shadow: 4px 0 8px rgba(0,0,0,0.1);
+}
+
+/* FIX CỘT L01-L60: Ép nhỏ lại chỉ còn 30px */
+#weekly-emulation-table thead th.vertical-text {
+  writing-mode: vertical-rl !important;
+  transform: rotate(180deg) !important;
+  white-space: nowrap !important;
+  width: 30px !important; 
+  min-width: 30px !important;
+  max-width: 30px !important;
+  height: 95px !important;
+  color: blue !important;
+  text-align: center !important;
+}
+
+/* Ép các ô dữ liệu bên dưới cũng phải nhỏ theo tiêu đề */
+#weekly-emulation-table td:not(:first-child) {
+  width: 30px !important;
+  min-width: 30px !important;
+  max-width: 30px !important;
+}
+/*sinhnhat*/
+/* 🎂 FIX KÉO NGANG CHO LỊCH SINH NHẬT - RESPONSIVE */
+
+/* Khung bọc bên ngoài card body để kích hoạt cuộn ngang */
+#tab-birthday_manager .card-body {
+  overflow-x: auto !important; /* Bật cuộn ngang */
+  -webkit-overflow-scrolling: touch; /* Giúp vuốt trên iPhone mượt hơn */
+}
+
+/* Ép khung lưới của lịch có độ rộng tối thiểu để không bị bóp méo */
+#bd-calendar-grid {
+  display: grid;
+  /* Mỗi cột (thứ) rộng tối thiểu 120px để hiện đủ Họ tên không bị xuống dòng quá nhiều */
+  grid-template-columns: repeat(7, minmax(120px, 1fr)); 
+  background-color: #dee2e6;
+  gap: 1px;
+  border: 1px solid #dee2e6;
+  min-width: 900px; /* Ép lịch rộng 900px khi xem trên điện thoại để có thể kéo qua phải */
+}
+
+/* Căn chỉnh header (Thứ 2, Thứ 3...) cũng phải rộng theo lịch */
+.calendar-grid .cal-header {
+  min-width: 120px;
+  background-color: #f8f9fa;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+  color: #0d6efd;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* Đảm bảo ô ngày luôn trắng và chữ hiển thị tốt */
+.cal-day {
+  background-color: #fff;
+  min-height: 120px;
+  height: auto !important; 
+  padding: 8px;
+}
+
+/* Tinh chỉnh badge sinh nhật cho đẹp khi kéo ngang */
+.birthday-badge-full {
+  white-space: normal !important; 
+  word-wrap: break-word;
+  font-size: 11px !important;
+  line-height: 1.4;
+  margin-bottom: 5px;
+  border-left: 4px solid #dc3545;
+  background-color: rgba(220, 53, 69, 0.08); /* Màu đỏ nhạt */
+}
+</style>
