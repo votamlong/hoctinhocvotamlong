@@ -1,2 +1,0 @@
-# hoctinhocvotamlong
-Võ Tâm Long
